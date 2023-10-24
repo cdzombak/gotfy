@@ -24,6 +24,7 @@ type TopicPublisher struct {
 	logger *slog.Logger
 
 	server     *url.URL
+	authHeader string
 	httpClient *http.Client
 }
 
@@ -52,6 +53,10 @@ func NewTopicPublisher(slogger *slog.Logger, server *url.URL, httpClient *http.C
 	}, nil
 }
 
+func (t *TopicPublisher) SetAccessToken(token string) {
+	t.authHeader = fmt.Sprintf("Bearer %s", token)
+}
+
 func (t *TopicPublisher) SendMessage(ctx context.Context, m *Message) (*PublishResp, error) {
 	l := t.logger.With("message", m)
 
@@ -67,6 +72,11 @@ func (t *TopicPublisher) SendMessage(ctx context.Context, m *Message) (*PublishR
 	if err != nil {
 		l.ErrorCtx(ctx, "failed creating HTTP request", "err", err)
 		return nil, err
+	}
+
+	if t.authHeader != "" {
+		l.DebugCtx(ctx, "adding Authorization header to request", "req", req)
+		req.Header.Set("Authorization", "Bearer tk_AgQdq7mVBoFD37zQVN29RhuMzNIz2")
 	}
 
 	l.DebugCtx(ctx, "finished creation of request struct, prepping HTTP call", "req", req)
