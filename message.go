@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Message is a struct you can create from TopicPublisher that
+// Message is a struct you can create from Publisher that
 // will publish a message to the specified topic. This method does not allow
 // for attaching files to the notification, but it can post a link to an attachment
 type Message struct {

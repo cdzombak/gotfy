@@ -18,8 +18,8 @@ var (
 	ErrNoServer = errors.New("server is nil")
 )
 
-// TopicPublisher creates messages for topics
-type TopicPublisher struct {
+// Publisher sends notifications to the configured ntfy server
+type Publisher struct {
 	logger *slog.Logger
 
 	Headers    http.Header
@@ -27,11 +27,11 @@ type TopicPublisher struct {
 	httpClient *http.Client
 }
 
-// NewTopicPublisher creates a topic publisher for the specified server URL,
+// NewPublisher creates a topic publisher for the specified server URL,
 // and uses the supplied HTTP client to resolve the request. Uses the golang
 // slog package to log to; if you want to skip all logs supply slog.Logger{}
 // with a blank handler, and the publisher will do a no-op
-func NewTopicPublisher(slogger *slog.Logger, server *url.URL, httpClient *http.Client) (*TopicPublisher, error) {
+func NewPublisher(slogger *slog.Logger, server *url.URL, httpClient *http.Client) (*Publisher, error) {
 	if slogger == nil {
 		// if no logger is passed, ignore absolutely everything
 		slogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.Level(math.MaxInt)}))
@@ -50,7 +50,7 @@ func NewTopicPublisher(slogger *slog.Logger, server *url.URL, httpClient *http.C
 		"Accept":       []string{"application/json"},
 	}
 
-	return &TopicPublisher{
+	return &Publisher{
 		server:     server,
 		httpClient: httpClient,
 		logger:     slogger,
@@ -58,7 +58,7 @@ func NewTopicPublisher(slogger *slog.Logger, server *url.URL, httpClient *http.C
 	}, nil
 }
 
-func (t *TopicPublisher) SendMessage(ctx context.Context, m *Message) (*PublishResp, error) {
+func (t *Publisher) SendMessage(ctx context.Context, m *Message) (*PublishResp, error) {
 	l := t.logger.With("message", m)
 
 	l.DebugCtx(ctx, "marshaling NTFY message")
