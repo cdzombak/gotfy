@@ -23,8 +23,8 @@ var (
 type TopicPublisher struct {
 	logger *slog.Logger
 
+	Headers    http.Header
 	server     *url.URL
-	authHeader string
 	httpClient *http.Client
 }
 
@@ -46,15 +46,17 @@ func NewTopicPublisher(slogger *slog.Logger, server *url.URL, httpClient *http.C
 		httpClient = http.DefaultClient
 	}
 
+	headers := http.Header{
+		"Content-Type": []string{"application/json"},
+		"Accept":       []string{"application/json"},
+	}
+
 	return &TopicPublisher{
 		server:     server,
 		httpClient: httpClient,
 		logger:     slogger,
+		Headers:    headers,
 	}, nil
-}
-
-func (t *TopicPublisher) SetAccessToken(token string) {
-	t.authHeader = fmt.Sprintf("Bearer %s", token)
 }
 
 func (t *TopicPublisher) SendMessage(ctx context.Context, m *Message) (*PublishResp, error) {
@@ -74,9 +76,9 @@ func (t *TopicPublisher) SendMessage(ctx context.Context, m *Message) (*PublishR
 		return nil, err
 	}
 
-	if t.authHeader != "" {
-		l.DebugCtx(ctx, "adding Authorization header to request", "req", req)
-		req.Header.Set("Authorization", "Bearer tk_AgQdq7mVBoFD37zQVN29RhuMzNIz2")
+	if t.Headers != nil {
+		l.DebugCtx(ctx, "adding headers to request struct", "req", req, "headers", t.Headers.Clone())
+		req.Header = t.Headers.Clone()
 	}
 
 	l.DebugCtx(ctx, "finished creation of request struct, prepping HTTP call", "req", req)
