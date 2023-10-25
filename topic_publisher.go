@@ -16,7 +16,6 @@ import (
 
 var (
 	ErrNoServer = errors.New("server is nil")
-	ErrNoTopic  = errors.New("topic is nil")
 )
 
 // TopicPublisher creates messages for topics
