@@ -13,9 +13,8 @@ update: ## go mod tidy, then go get -u -d
 	go mod tidy
 	go get -u -d ./...
 
-clean: ## go mod tidy, lint, go generate
+clean: ## go mod tidy, lint
 	go mod tidy
-	go generate ./...
 
 deep-clean: clean ## Run clean, then purge modcache
 	go clean -modcache -cache -i -r -x
