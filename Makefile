@@ -1,9 +1,10 @@
-.PHONY: fmt clean deep-clean test test-update test-race help
-.DEFAULT: server
+.PHONY: update clean deep-clean test test-update test-race help
 
-TEST := CONFIG_ENV=test go test ./...
+TEST:=CONFIG_ENV=test go test ./...
 
-VERSION ?= $(shell git describe --abbrev=0 --tags)
+default: help
+help: ## Print help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 #==============================
 # App hygiene
@@ -33,10 +34,3 @@ test-update: ## test and update snapshots
 test-race: ## Run go vet, then run tests trying to catch race conditions
 	go vet ./...
 	CONFIG_ENV=test go test -race ./...
-
-
-#==============================
-# Meta
-#==============================
-help: ## Print help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
