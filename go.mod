@@ -1,4 +1,4 @@
-module github.com/AnthonyHewins/gotfy
+module github.com/cdzombak/gotfy
 
 go 1.19
 
