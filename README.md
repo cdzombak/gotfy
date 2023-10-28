@@ -1,37 +1,50 @@
 # gotfy
 
-GoTFY is a `ntfy` client for interacting with NTFY servers
+GoTFY is an API client for sending notifications using [ntfy](https://ntfy.sh) servers.
 
-## Install as a dependency
+## Installation
 
 ```shell
-go get github.com/AnthonyHewins/gotfy
+go get github.com/cdzombak/gotfy
 ```
 
-## Example usage
+## Example Usage
 
 ```go
-server, _ := url.Parse("http://server.com")
-customHTTPClient := http.DefaultClient
+const ntfyTimeout = 10 * time.Second
+serverURL, _ := url.Parse("https://ntfy.example.com")
 
-tp, err := gotfy.NewTopicPublisher(server, customHTTPClient)
+publisher, err := gotfy.NewTopicPublisher(nil, serverURL, nil)
 if err != nil {
-    panic("bad config:"+err.Error())
+    panic("bad config: " + err.Error())
 }
 
-tp.SendMessage(&gotfy.Message{
-    Topic:   "topic",
-    Message: "message",
-    Title: "title",
-    Tags:    []string{"emoji1","emoji2","some text"},
+ntfyPublisher.Headers.Set("user-agent", "my-app / 1.0")
+ntfyPublisher.Headers.Set("authorization", "Bearer tk_MY_NTFY_TOKEN")
+
+ctx, cancel := context.WithTimeout(context.Background(), ntfyTimeout)
+defer cancel()
+publisher.SendMessage(ctx, &gotfy.Message{
+    Topic:    "topic",
+    Message:  "message",
+    Title:    "title",
+    Tags:     []string{"emoji1","emoji2","some text"},
     Priority: gotfy.High,
-    Actions: []gotfy.ActionButton{
+    Actions:  []gotfy.ActionButton{
 	    Label: "label",
-	    Link: "http://link.sh",
+	    Link: "http://link.example.com",
 	    Clear: true,
     },
-    ClickURL: "http://click.com",
-    IconURL: "http://icon.com",
-    Delay:   time.Minute * 5,
-    Email:   "email@domain.com",
+    ClickURL: "http://click.example.com",
+    IconURL:  "http://icon.example.com",
+    Delay:    time.Minute * 5,
+    Email:    "me@example.com",
 })
+```
+
+## License
+
+gotfy is licensed under the Apache 2.0 license. See LICENSE in this repository.
+
+- Original library copyright 2023 [AnthonyHewins](https://github.com/AnthonyHewins)
+- Fork changes copyright 2023 [Chris Dzombak](https://www.dzombak.com)
