@@ -4,108 +4,106 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"log/slog"
-	"math"
 	"net/http"
 	"net/url"
 )
 
-var (
-	ErrNoServer = errors.New("server is nil")
-)
+// Publisher sends notification messages to a Ntfy server.
+type Publisher interface {
+	// Send publishes the given message to the configured Ntfy server.
+	Send(ctx context.Context, m Message) (*SendResponse, error)
+}
 
-// Publisher sends notifications to the configured ntfy server
-type Publisher struct {
-	logger *slog.Logger
+type publisher struct {
+	server     url.URL
+	headers    http.Header
+	httpClient HttpClient
+}
 
+type HttpClient interface {
+	// Do sends an HTTP request and returns an HTTP response.
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// PublisherOpts contains the configuration options for a new Publisher.
+type PublisherOpts struct {
+	Server     *url.URL
+	Auth       Authorization
 	Headers    http.Header
-	server     *url.URL
-	httpClient *http.Client
+	HttpClient HttpClient
 }
 
-// NewPublisher creates a topic publisher for the specified server URL,
-// and uses the supplied HTTP client to resolve the request. Uses the golang
-// slog package to log to; if you want to skip all logs supply slog.Logger{}
-// with a blank handler, and the publisher will do a no-op
-func NewPublisher(slogger *slog.Logger, server *url.URL, httpClient *http.Client) (*Publisher, error) {
-	if slogger == nil {
-		// if no logger is passed, ignore absolutely everything
-		slogger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.Level(math.MaxInt)}))
+// NewPublisher creates a publisher for the given Ntfy server URL.
+func NewPublisher(opts PublisherOpts) Publisher {
+	retv := publisher{}
+
+	if opts.Server == nil || opts.Server.String() == "" {
+		retv.server = url.URL{
+			Scheme: "https",
+			Host:   "ntfy.sh",
+		}
+	} else {
+		retv.server = *opts.Server
 	}
 
-	if server == nil {
-		return nil, ErrNoServer
+	if opts.Headers == nil {
+		retv.headers = make(http.Header)
+	} else {
+		retv.headers = opts.Headers.Clone()
+	}
+	retv.headers.Set("Content-Type", "application/json")
+	retv.headers.Set("Accept", "application/json")
+
+	if opts.Auth != nil {
+		retv.headers.Set("Authorization", opts.Auth.Header())
 	}
 
-	if httpClient == nil {
-		httpClient = http.DefaultClient
+	if opts.HttpClient == nil {
+		retv.httpClient = http.DefaultClient
+	} else {
+		retv.httpClient = opts.HttpClient
 	}
 
-	headers := http.Header{
-		"Content-Type": []string{"application/json"},
-		"Accept":       []string{"application/json"},
-	}
-
-	return &Publisher{
-		server:     server,
-		httpClient: httpClient,
-		logger:     slogger,
-		Headers:    headers,
-	}, nil
+	return &retv
 }
 
-func (t *Publisher) SendMessage(ctx context.Context, m *Message) (*PublishResp, error) {
-	l := t.logger.With("message", m)
-
-	l.DebugContext(ctx, "marshaling NTFY message")
+// Send publishes the given message to the configured Ntfy server.
+func (p *publisher) Send(ctx context.Context, m Message) (*SendResponse, error) {
 	buf, err := json.Marshal(m)
 	if err != nil {
-		l.ErrorContext(ctx, "failed marshal", "err", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal message to JSON: %w", err)
 	}
 
-	l.DebugContext(ctx, "finished marshal, creating request struct", "server", t.server)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, t.server.String(), bytes.NewReader(buf))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.server.String(), bytes.NewReader(buf))
 	if err != nil {
-		l.ErrorContext(ctx, "failed creating HTTP request", "err", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to build request: %w", err)
 	}
+	req.Header = p.headers.Clone()
 
-	if t.Headers != nil {
-		l.DebugContext(ctx, "adding headers to request struct", "req", req, "headers", t.Headers.Clone())
-		req.Header = t.Headers.Clone()
-	}
-
-	l.DebugContext(ctx, "finished creation of request struct, prepping HTTP call", "req", req)
-	resp, err := t.httpClient.Do(req)
+	resp, err := p.httpClient.Do(req)
 	if err != nil {
-		l.ErrorContext(ctx, "failed HTTP call", "http client", t.httpClient, "req", req, "err", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to send message: %w", err)
 	}
 
-	code := resp.StatusCode
-	l.DebugContext(ctx, "finished HTTP call, reading response body", "status code", code)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("failed to send message: HTTP %d", resp.StatusCode)
+	}
+
+	if resp.Body == nil {
+		return nil, fmt.Errorf("response body is nil")
+	}
+
 	buf, err = io.ReadAll(resp.Body)
 	if err != nil {
-		l.ErrorContext(ctx, "failed reading response body", "status code", code, "err", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	if s := resp.StatusCode; s < 200 || s >= 300 {
-		l.ErrorContext(ctx, "bad HTTP response code from server", "response body", string(buf), "status code", code)
-		return nil, fmt.Errorf("bad http response from server: %d", code)
-	}
-
-	l.DebugContext(ctx, "unmarshaling response body")
-	var pubResp PublishResp
+	var pubResp SendResponse
 	if err = json.Unmarshal(buf, &pubResp); err != nil {
-		l.ErrorContext(ctx, "failed unmarshaling response body", "response body", string(buf), "status code", code)
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal response from JSON: %w", err)
 	}
 
-	l.DebugContext(ctx, "finished unmarshal")
 	return &pubResp, nil
 }

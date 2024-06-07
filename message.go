@@ -7,24 +7,25 @@ import (
 	"time"
 )
 
-// Message is a struct you can create from TopicPublisher that
-// will publish a message to the specified topic. This method does not allow
-// for attaching files to the notification, but it can post a link to an attachment
+// Message represents a notification to be sent to the specified topic.
+// See: https://docs.ntfy.sh/publish/
 type Message struct {
-	Topic    string         `json:"topic"`              // Target topic name
-	Message  string         `json:"message,omitempty"`  // Message body; set to triggered if empty or not passed
-	Title    string         `json:"title,omitempty"`    // Message title
-	Tags     []string       `json:"tags,omitempty"`     // List of tags that may or not map to emojis
-	Priority Priority       `json:"priority,omitempty"` // Message priority with 1=min, 3=default and 5=max
-	Actions  []ActionButton `json:"actions,omitempty"`  // Custom user action buttons for notifications
-	ClickURL *url.URL       `json:"click,omitempty"`    // Website opened when notification is clicked
-	IconURL  *url.URL       `json:"icon,omitempty"`     // URL to use as notification icon
-	Delay    time.Duration  `json:"delay,omitempty"`    // Duration to delay delivery
-	Email    string         `json:"email,omitempty"`    // E-mail address for e-mail notifications
-	Call     string         `json:"call,omitempty"`     // Phone number to use for voice call
+	Topic string `json:"topic"`           // Target topic name.
+	Email string `json:"email,omitempty"` // Address for e-mail notifications. See: https://docs.ntfy.sh/publish/#e-mail-notifications
+	Call  string `json:"call,omitempty"`  // Phone number for voice call. See: https://docs.ntfy.sh/publish/#phone-calls
 
-	AttachURLFilename string   `json:"filename,omitempty"`  // File name of the attachment
-	AttachURL         *url.URL `json:"attachurl,omitempty"` // URL of an attachment
+	Message  string         `json:"message,omitempty"`  // Message body.
+	Title    string         `json:"title,omitempty"`    // Message title. See: https://docs.ntfy.sh/publish/#message-title
+	Tags     []string       `json:"tags,omitempty"`     // List of tags that may or not map to emojis. See: https://docs.ntfy.sh/publish/#tags-emojis
+	Priority Priority       `json:"priority,omitempty"` // Message priority with 1=min, 3=default and 5=max. See: https://docs.ntfy.sh/publish/#message-priority
+	Actions  []ActionButton `json:"actions,omitempty"`  // Custom user action buttons for notifications. See: https://docs.ntfy.sh/publish/#action-buttons
+	ClickURL *url.URL       `json:"click,omitempty"`    // Website to open when notification is clicked. See: https://docs.ntfy.sh/publish/#click-action
+	IconURL  *url.URL       `json:"icon,omitempty"`     // URL to use as notification icon. See: https://docs.ntfy.sh/publish/#icons
+
+	Delay time.Duration `json:"delay,omitempty"` // Duration by which to delay delivery. See: https://docs.ntfy.sh/publish/#scheduled-delivery
+
+	AttachURL         *url.URL `json:"attachurl,omitempty"` // URL of an attachment. See: https://docs.ntfy.sh/publish/#attach-file-from-a-url
+	AttachURLFilename string   `json:"filename,omitempty"`  // User-facing file name for the attachment pointed to by AttachURL.
 }
 
 func (m *Message) MarshalJSON() ([]byte, error) {

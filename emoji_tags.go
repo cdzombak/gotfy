@@ -1,6 +1,9 @@
 package gotfy
 
-// The enormous list of emojis supported by ntfy
+// Emoji tags supported by ntfy.
+// See: https://docs.ntfy.sh/publish/#tags-emojis
+//
+//goland:noinspection ALL
 const (
 	Grinning                             = "grinning"                             //	😀
 	Smiley                               = "smiley"                               //	😃

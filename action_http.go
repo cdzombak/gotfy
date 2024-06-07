@@ -5,7 +5,8 @@ import (
 	"net/url"
 )
 
-// HttpAction allows attaching an HTTP request action to a notification
+// HttpAction allows attaching an HTTP request action to a notification.
+// See: https://docs.ntfy.sh/publish/#send-http-request
 type HttpAction[X comparable] struct {
 	Label   string            `json:"label"`   //  string  -  Open garage door  Label of the action button in the notification
 	URL     *url.URL          `json:"url"`     //  string  -  https://ntfy.sh/mytopic  URL to which the HTTP request will be sent
@@ -15,8 +16,8 @@ type HttpAction[X comparable] struct {
 	Clear   bool              `json:"clear"`   //  boolean  false  true  Clear notification after HTTP request succeeds. If the request fails, the notification is not cleared.
 }
 
-func (h *HttpAction[X]) actionType() ActionButtonType {
-	return HTTP
+func (h *HttpAction[X]) ButtonType() ActionButtonType {
+	return ActionButtonTypeHTTP
 }
 
 func (h *HttpAction[X]) MarshalJSON() ([]byte, error) {

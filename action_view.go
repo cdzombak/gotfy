@@ -11,8 +11,8 @@ type ViewAction struct {
 	Clear bool
 }
 
-func (v *ViewAction) actionType() ActionButtonType {
-	return View
+func (v *ViewAction) ButtonType() ActionButtonType {
+	return ActionButtonTypeView
 }
 
 func (v *ViewAction) MarshalJSON() ([]byte, error) {

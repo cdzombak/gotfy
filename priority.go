@@ -11,5 +11,5 @@ const (
 	PriorityDefault     = Priority(3)
 	PriorityHigh        = Priority(4)
 	PriorityMax         = Priority(5)
-	PriorityUrgent      = PriorityMax
+	PriorityUrgent      = PriorityMax // "urgent" is an alias for "max"
 )
