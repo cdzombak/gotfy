@@ -99,7 +99,7 @@ func TestMessageMarshalJSON(mainTest *testing.T) {
 				Message:  "Message",
 				Title:    "Title",
 				Tags:     []string{"tag1", "tag2"},
-				Priority: High,
+				Priority: PriorityHigh,
 				Actions: []ActionButton{&ViewAction{
 					Label: "ajisdiopa",
 					Link:  &url.URL{Scheme: "h", Host: "t.com"},

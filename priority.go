@@ -1,14 +1,15 @@
 package gotfy
 
-// Priority is an enum for the message priority
+// Priority is an enum for Ntfy's message priorities.
+// See: https://docs.ntfy.sh/publish/#message-priority
 type Priority int8
 
-//go:generate enumer -type Priority -transform lower
 const (
-	UnspecifiedPriority Priority = iota
-	Min
-	Low
-	Default
-	High
-	Max
+	PriorityUnspecified = Priority(0)
+	PriorityMin         = Priority(1)
+	PriorityLow         = Priority(2)
+	PriorityDefault     = Priority(3)
+	PriorityHigh        = Priority(4)
+	PriorityMax         = Priority(5)
+	PriorityUrgent      = PriorityMax
 )
