@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// Message is a struct you can create from Publisher that
+// Message is a struct you can create from TopicPublisher that
 // will publish a message to the specified topic. This method does not allow
 // for attaching files to the notification, but it can post a link to an attachment
 type Message struct {
@@ -74,28 +74,26 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 		buf = append(buf, fmt.Sprintf(`,"actions":%s`, mm)...)
 	}
 
-	if x := m.ClickURL; x != nil {
-		mm, err := json.Marshal(x.String())
-		if err != nil {
-			return nil, err
-		}
-		buf = append(buf, fmt.Sprintf(`,"click":%s`, mm)...)
+	type urls struct {
+		name string
+		url  *url.URL
 	}
 
-	if x := m.AttachURL; x != nil {
-		mm, err := json.Marshal(x.String())
+	for _, v := range []urls{
+		{"click", m.ClickURL},
+		{"attachurl", m.AttachURL},
+		{"icon", m.IconURL},
+	} {
+		mm, err := urlString(v.url)
 		if err != nil {
 			return nil, err
 		}
-		buf = append(buf, fmt.Sprintf(`,"attachurl":%s`, mm)...)
-	}
 
-	if x := m.IconURL; x != nil {
-		mm, err := json.Marshal(x.String())
-		if err != nil {
-			return nil, err
+		if mm == nil {
+			continue
 		}
-		buf = append(buf, fmt.Sprintf(`,"icon":%s`, mm)...)
+
+		buf = append(buf, fmt.Sprintf(`,"%s":%s`, v.name, mm)...)
 	}
 
 	if x := m.Delay; x > 0 {
@@ -131,4 +129,17 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 	}
 
 	return append(buf, '}'), nil
+}
+
+func urlString(u *url.URL) ([]byte, error) {
+	if u == nil {
+		return nil, nil
+	}
+
+	s := u.String()
+	if s == "" {
+		return nil, nil
+	}
+
+	return json.Marshal(s)
 }
