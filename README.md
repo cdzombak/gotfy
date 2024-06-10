@@ -17,7 +17,7 @@ publisher := gotfy.NewPublisher(PublisherOpts{
     Server:  serverURL,
     Auth:    gotfy.AccessToken("tk_0123456789"),
 	Headers: http.Header{
-		"User-Agent": []string{"my-app / 1.0"},
+		"User-Agent": {"my-app / 1.0"},
     },
 })
 
