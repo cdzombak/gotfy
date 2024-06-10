@@ -1,5 +1,7 @@
 # `github.com/cdzombak/gotfy`
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/cdzombak/gotfy.svg)](https://pkg.go.dev/github.com/cdzombak/gotfy)
+
 `gotfy` is an API client for sending notifications using [ntfy](https://ntfy.sh) servers.
 
 ## Installation
