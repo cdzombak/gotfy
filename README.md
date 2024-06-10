@@ -46,5 +46,5 @@ publisher.SendMessage(ctx, &gotfy.Message{
 
 gotfy is licensed under the Apache 2.0 license; see [LICENSE](LICENSE) in this repository.
 
-- Original library copyright 2023 [AnthonyHewins](https://github.com/AnthonyHewins)
+- Original library copyright [AnthonyHewins](https://github.com/AnthonyHewins)
 - Fork changes copyright 2023-2024 [Chris Dzombak](https://www.dzombak.com)
