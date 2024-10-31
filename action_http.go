@@ -24,7 +24,10 @@ func (h *HttpAction[X]) MarshalJSON() ([]byte, error) {
 	m := map[string]any{
 		"action": "http",
 		"label":  h.Label,
-		"url":    h.URL.String(),
+	}
+
+	if h.URL != nil {
+		m["url"] = h.URL.String()
 	}
 
 	if meth := h.Method; meth != "" {
